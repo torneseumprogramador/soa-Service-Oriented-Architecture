@@ -13,7 +13,7 @@ Este projeto implementa uma solução **SOA clássica** com **SOAP/WSDL/XSD** pa
 
 ### Tecnologias
 
-- **.NET 8** com **CoreWCF** para serviços SOAP
+- **.NET 9** com **CoreWCF** para serviços SOAP
 - **PostgreSQL** (3 bancos separados)
 - **Entity Framework Core** para persistência
 - **Polly** para resiliência (retry, circuit breaker)
@@ -24,22 +24,46 @@ Este projeto implementa uma solução **SOA clássica** com **SOAP/WSDL/XSD** pa
 
 ### Pré-requisitos
 
-- .NET 8 SDK
+- .NET 9 SDK
 - Docker e Docker Compose
 - PostgreSQL (opcional para desenvolvimento local)
+- Make (opcional, mas recomendado)
 
-### Execução com Docker Compose
+### 🎯 Execução Rápida com Makefile
 
 ```bash
 # Clonar o repositório
 git clone <repository-url>
 cd soa-Service-Oriented-Architecture
 
+# Configurar ambiente e executar todos os serviços
+make dev-setup
+make run-all
+
+# Ou usar Docker
+make docker-up
+```
+
+### Comandos Essenciais do Makefile
+
+```bash
+make help          # Ver todos os comandos disponíveis
+make status        # Verificar status dos serviços
+make health-check  # Verificar saúde dos endpoints
+make test-soap     # Executar testes SOAP
+make stop-all      # Parar todos os serviços
+```
+
+> 📖 **Documentação completa do Makefile**: Veja [MAKEFILE_README.md](MAKEFILE_README.md) para todos os comandos e fluxos de trabalho.
+
+### Execução Manual com Docker Compose
+
+```bash
 # Executar todos os serviços
 docker-compose -f docker/docker-compose.yml up --build
 ```
 
-### Execução Local
+### Execução Manual Local
 
 ```bash
 # Restaurar dependências
@@ -202,6 +226,8 @@ soa-Service-Oriented-Architecture/
 │   ├── generate-proxies.sh          # Scripts de geração
 │   └── generate-proxies.ps1
 ├── services-registry.json           # Registro de serviços
+├── Makefile                         # Comandos automatizados
+├── MAKEFILE_README.md               # Documentação do Makefile
 └── README.md
 ```
 

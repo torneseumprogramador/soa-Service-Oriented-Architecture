@@ -1,17 +1,17 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 7003
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["SoaEcommerce.SalesService.csproj", "./"]
-COPY ["../../Contracts/SoaEcommerce.Contracts/SoaEcommerce.Contracts.csproj", "../Contracts/SoaEcommerce.Contracts/"]
-RUN dotnet restore "SoaEcommerce.SalesService.csproj"
+COPY ["SalesService/SoaEcommerce.SalesService/SoaEcommerce.SalesService.csproj", "SalesService/SoaEcommerce.SalesService/"]
+COPY ["Contracts/SoaEcommerce.Contracts/SoaEcommerce.Contracts.csproj", "Contracts/SoaEcommerce.Contracts/"]
+RUN dotnet restore "SalesService/SoaEcommerce.SalesService/SoaEcommerce.SalesService.csproj"
 COPY . .
-RUN dotnet build "SoaEcommerce.SalesService.csproj" -c Release -o /app/build
+RUN dotnet build "SalesService/SoaEcommerce.SalesService/SoaEcommerce.SalesService.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "SoaEcommerce.SalesService.csproj" -c Release -o /app/publish
+RUN dotnet publish "SalesService/SoaEcommerce.SalesService/SoaEcommerce.SalesService.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app

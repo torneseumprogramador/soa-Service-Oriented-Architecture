@@ -1,4 +1,4 @@
-version: '3.8'
+# Docker Compose para SOA E-commerce - Apenas Bancos de Dados
 
 services:
   # Banco de dados PostgreSQL para CustomerService
@@ -54,90 +54,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # CustomerService
-  customer-service:
-    build:
-      context: ../src/CustomerService/SoaEcommerce.CustomerService
-      dockerfile: Dockerfile
-    container_name: customer-service
-    ports:
-      - "7001:7001"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:7001
-    depends_on:
-      pg-customers:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # CatalogService
-  catalog-service:
-    build:
-      context: ../src/CatalogService/SoaEcommerce.CatalogService
-      dockerfile: Dockerfile
-    container_name: catalog-service
-    ports:
-      - "7002:7002"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:7002
-    depends_on:
-      pg-catalog:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # SalesService
-  sales-service:
-    build:
-      context: ../src/SalesService/SoaEcommerce.SalesService
-      dockerfile: Dockerfile
-    container_name: sales-service
-    ports:
-      - "7003:7003"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:7003
-    depends_on:
-      pg-sales:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # CompositionService
-  composition-service:
-    build:
-      context: ../src/CompositionService/SoaEcommerce.CompositionService
-      dockerfile: Dockerfile
-    container_name: composition-service
-    ports:
-      - "7000:7000"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:7000
-    depends_on:
-      customer-service:
-        condition: service_healthy
-      catalog-service:
-        condition: service_healthy
-      sales-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   pg_customers_data:

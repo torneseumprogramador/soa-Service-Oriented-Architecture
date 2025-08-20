@@ -49,7 +49,7 @@ create_customer_envelope='<?xml version="1.0" encoding="utf-8"?>
   </soap:Body>
 </soap:Envelope>'
 
-test_soap_service "CustomerService" "http://localhost:7001/soap" "customers:CreateCustomer" "$create_customer_envelope"
+test_soap_service "CustomerService" "http://localhost:7001/soap" "customers/ICustomerService/CreateCustomer" "$create_customer_envelope"
 
 # Teste 2: CreateProduct
 create_product_envelope='<?xml version="1.0" encoding="utf-8"?>
@@ -69,7 +69,7 @@ create_product_envelope='<?xml version="1.0" encoding="utf-8"?>
   </soap:Body>
 </soap:Envelope>'
 
-test_soap_service "CatalogService" "http://localhost:7002/soap" "catalog:CreateProduct" "$create_product_envelope"
+test_soap_service "CatalogService" "http://localhost:7002/soap" "catalog/ICatalogService/CreateProduct" "$create_product_envelope"
 
 # Teste 3: PlaceOrder (Sucesso)
 place_order_envelope='<?xml version="1.0" encoding="utf-8"?>
@@ -93,6 +93,6 @@ place_order_envelope='<?xml version="1.0" encoding="utf-8"?>
   </soap:Body>
 </soap:Envelope>'
 
-test_soap_service "CompositionService" "http://localhost:7000/soap" "process:PlaceOrder" "$place_order_envelope"
+test_soap_service "CompositionService" "http://localhost:7000/soap" "process/ICompositionService/PlaceOrder" "$place_order_envelope"
 
 echo "🎉 Testes concluídos!"
