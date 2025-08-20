@@ -1,0 +1,50 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log
+
+# Visual Studio
+.vs/
+*.sln.docstates
+*.userprefs
+
+# Rider
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.dockerignore
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+src/Clients/SoaEcommerce.Clients/Generated/
+
+# Test results
+TestResults/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp

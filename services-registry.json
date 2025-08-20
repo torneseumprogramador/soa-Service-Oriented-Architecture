@@ -1,0 +1,26 @@
+{
+  "services": {
+    "CustomerService": {
+      "url": "http://localhost:7001/soap",
+      "wsdl": "http://localhost:7001/soap?wsdl",
+      "description": "Serviço de gerenciamento de clientes"
+    },
+    "CatalogService": {
+      "url": "http://localhost:7002/soap",
+      "wsdl": "http://localhost:7002/soap?wsdl",
+      "description": "Serviço de catálogo e estoque"
+    },
+    "SalesService": {
+      "url": "http://localhost:7003/soap",
+      "wsdl": "http://localhost:7003/soap?wsdl",
+      "description": "Serviço de vendas e pedidos"
+    },
+    "CompositionService": {
+      "url": "http://localhost:7000/soap",
+      "wsdl": "http://localhost:7000/soap?wsdl",
+      "description": "Serviço de orquestração de processos"
+    }
+  },
+  "version": "1.0",
+  "lastUpdated": "2024-01-01T00:00:00Z"
+}

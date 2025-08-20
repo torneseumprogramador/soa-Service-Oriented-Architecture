@@ -1,0 +1,6 @@
+@SoaEcommerce.CatalogService_HostAddress = http://localhost:5023
+
+GET {{SoaEcommerce.CatalogService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exemplos de Envelopes SOAP para Testes -->
+
+<!-- ========================================== -->
+<!-- 1. CreateCustomer Request -->
+<!-- ========================================== -->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <AuthHeader xmlns="urn:soa-ecommerce:v1:auth">
+      <ApiKey>dev</ApiKey>
+    </AuthHeader>
+    <CorrelationId xmlns="urn:soa-ecommerce:v1:headers">12345</CorrelationId>
+  </soap:Header>
+  <soap:Body>
+    <CreateCustomer xmlns="urn:soa-ecommerce:v1:customers">
+      <Name>João Silva</Name>
+      <Email>joao.silva@email.com</Email>
+    </CreateCustomer>
+  </soap:Body>
+</soap:Envelope>
+
+<!-- ========================================== -->
+<!-- 2. CreateProduct Request -->
+<!-- ========================================== -->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <AuthHeader xmlns="urn:soa-ecommerce:v1:auth">
+      <ApiKey>dev</ApiKey>
+    </AuthHeader>
+    <CorrelationId xmlns="urn:soa-ecommerce:v1:headers">12346</CorrelationId>
+  </soap:Header>
+  <soap:Body>
+    <CreateProduct xmlns="urn:soa-ecommerce:v1:catalog">
+      <Name>Notebook Dell Inspiron</Name>
+      <Price>2999.99</Price>
+      <Stock>10</Stock>
+    </CreateProduct>
+  </soap:Body>
+</soap:Envelope>
+
+<!-- ========================================== -->
+<!-- 3. ReserveInventory Request -->
+<!-- ========================================== -->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <AuthHeader xmlns="urn:soa-ecommerce:v1:auth">
+      <ApiKey>dev</ApiKey>
+    </AuthHeader>
+    <CorrelationId xmlns="urn:soa-ecommerce:v1:headers">12347</CorrelationId>
+  </soap:Header>
+  <soap:Body>
+    <ReserveInventory xmlns="urn:soa-ecommerce:v1:catalog">
+      <Lines>
+        <Line>
+          <ProductId>33333333-3333-3333-3333-333333333333</ProductId>
+          <Quantity>1</Quantity>
+        </Line>
+        <Line>
+          <ProductId>44444444-4444-4444-4444-444444444444</ProductId>
+          <Quantity>2</Quantity>
+        </Line>
+      </Lines>
+    </ReserveInventory>
+  </soap:Body>
+</soap:Envelope>
+
+<!-- ========================================== -->
+<!-- 4. PlaceOrder Request (Sucesso) -->
+<!-- ========================================== -->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <AuthHeader xmlns="urn:soa-ecommerce:v1:auth">
+      <ApiKey>dev</ApiKey>
+    </AuthHeader>
+    <CorrelationId xmlns="urn:soa-ecommerce:v1:headers">12348</CorrelationId>
+  </soap:Header>
+  <soap:Body>
+    <PlaceOrder xmlns="urn:soa-ecommerce:v1:process">
+      <CustomerId>11111111-1111-1111-1111-111111111111</CustomerId>
+      <Items>
+        <Item>
+          <ProductId>33333333-3333-3333-3333-333333333333</ProductId>
+          <Quantity>1</Quantity>
+        </Item>
+        <Item>
+          <ProductId>44444444-4444-4444-4444-444444444444</ProductId>
+          <Quantity>1</Quantity>
+        </Item>
+      </Items>
+    </PlaceOrder>
+  </soap:Body>
+</soap:Envelope>
+
+<!-- ========================================== -->
+<!-- 5. PlaceOrder Request (Estoque Insuficiente) -->
+<!-- ========================================== -->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <AuthHeader xmlns="urn:soa-ecommerce:v1:auth">
+      <ApiKey>dev</ApiKey>
+    </AuthHeader>
+    <CorrelationId xmlns="urn:soa-ecommerce:v1:headers">12349</CorrelationId>
+  </soap:Header>
+  <soap:Body>
+    <PlaceOrder xmlns="urn:soa-ecommerce:v1:process">
+      <CustomerId>11111111-1111-1111-1111-111111111111</CustomerId>
+      <Items>
+        <Item>
+          <ProductId>33333333-3333-3333-3333-333333333333</ProductId>
+          <Quantity>999</Quantity>
+        </Item>
+      </Items>
+    </PlaceOrder>
+  </soap:Body>
+</soap:Envelope>
+
+<!-- ========================================== -->
+<!-- 6. PlaceOrder Request (Cliente Inválido) -->
+<!-- ========================================== -->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <AuthHeader xmlns="urn:soa-ecommerce:v1:auth">
+      <ApiKey>dev</ApiKey>
+    </AuthHeader>
+    <CorrelationId xmlns="urn:soa-ecommerce:v1:headers">12350</CorrelationId>
+  </soap:Header>
+  <soap:Body>
+    <PlaceOrder xmlns="urn:soa-ecommerce:v1:process">
+      <CustomerId>99999999-9999-9999-9999-999999999999</CustomerId>
+      <Items>
+        <Item>
+          <ProductId>33333333-3333-3333-3333-333333333333</ProductId>
+          <Quantity>1</Quantity>
+        </Item>
+      </Items>
+    </PlaceOrder>
+  </soap:Body>
+</soap:Envelope>
