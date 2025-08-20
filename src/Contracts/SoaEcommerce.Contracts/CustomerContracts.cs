@@ -37,6 +37,9 @@ public class CreateCustomerResponse
 
     [XmlElement("Message")]
     public string Message { get; set; } = string.Empty;
+
+    [XmlElement("Customer")]
+    public CustomerDto? Customer { get; set; }
 }
 
 [XmlRoot("GetCustomerRequest", Namespace = "urn:soa-ecommerce:v1:customers")]

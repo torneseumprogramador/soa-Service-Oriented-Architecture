@@ -2,9 +2,14 @@
 # Arquitetura Orientada a Serviços com SOAP/WSDL
 
 .PHONY: help build clean restore test docker-up docker-down docker-build docker-logs docker-clean
+.PHONY: build-customer build-catalog build-sales build-composition build-contracts build-clients build-tests
+.PHONY: clean-customer clean-catalog clean-sales clean-composition clean-contracts clean-clients clean-tests
 .PHONY: run-all run-customer run-catalog run-sales run-composition
+.PHONY: run-customer-bg run-catalog-bg run-sales-bg run-composition-bg
+.PHONY: stop-all stop-customer stop-catalog stop-sales stop-composition
 .PHONY: migrate-all migrate-customer migrate-catalog migrate-sales
-.PHONY: generate-proxies test-soap health-check logs
+.PHONY: generate-proxies test-soap test-customer health-check logs
+.PHONY: logs-customer logs-catalog logs-sales logs-composition
 
 # Variáveis
 DOCKER_COMPOSE_FILE = docker/docker-compose.yml
@@ -37,11 +42,81 @@ build: restore ## Compila a solução
 	@echo "$(YELLOW)🔨 Compilando solução...$(NC)"
 	dotnet build $(SOLUTION_FILE) --configuration Release
 
+build-customer: ## Compila apenas o CustomerService
+	@echo "$(YELLOW)🔨 Compilando CustomerService...$(NC)"
+	dotnet build src/CustomerService/SoaEcommerce.CustomerService --configuration Release
+
+build-catalog: ## Compila apenas o CatalogService
+	@echo "$(YELLOW)🔨 Compilando CatalogService...$(NC)"
+	dotnet build src/CatalogService/SoaEcommerce.CatalogService --configuration Release
+
+build-sales: ## Compila apenas o SalesService
+	@echo "$(YELLOW)🔨 Compilando SalesService...$(NC)"
+	dotnet build src/SalesService/SoaEcommerce.SalesService --configuration Release
+
+build-composition: ## Compila apenas o CompositionService
+	@echo "$(YELLOW)🔨 Compilando CompositionService...$(NC)"
+	dotnet build src/CompositionService/SoaEcommerce.CompositionService --configuration Release
+
+build-contracts: ## Compila apenas os Contracts
+	@echo "$(YELLOW)🔨 Compilando Contracts...$(NC)"
+	dotnet build src/Contracts/SoaEcommerce.Contracts --configuration Release
+
+build-clients: ## Compila apenas os Clients
+	@echo "$(YELLOW)🔨 Compilando Clients...$(NC)"
+	dotnet build src/Clients/SoaEcommerce.Clients --configuration Release
+
+build-tests: ## Compila apenas os Tests
+	@echo "$(YELLOW)🔨 Compilando Tests...$(NC)"
+	dotnet build tests/CompositionService.Tests/SoaEcommerce.CompositionService.Tests --configuration Release
+
 clean: ## Limpa arquivos de build
 	@echo "$(YELLOW)🧹 Limpando arquivos de build...$(NC)"
 	dotnet clean $(SOLUTION_FILE)
 	find . -name "bin" -type d -exec rm -rf {} + 2>/dev/null || true
 	find . -name "obj" -type d -exec rm -rf {} + 2>/dev/null || true
+
+clean-customer: ## Limpa apenas o CustomerService
+	@echo "$(YELLOW)🧹 Limpando CustomerService...$(NC)"
+	dotnet clean src/CustomerService/SoaEcommerce.CustomerService
+	rm -rf src/CustomerService/SoaEcommerce.CustomerService/bin 2>/dev/null || true
+	rm -rf src/CustomerService/SoaEcommerce.CustomerService/obj 2>/dev/null || true
+
+clean-catalog: ## Limpa apenas o CatalogService
+	@echo "$(YELLOW)🧹 Limpando CatalogService...$(NC)"
+	dotnet clean src/CatalogService/SoaEcommerce.CatalogService
+	rm -rf src/CatalogService/SoaEcommerce.CatalogService/bin 2>/dev/null || true
+	rm -rf src/CatalogService/SoaEcommerce.CatalogService/obj 2>/dev/null || true
+
+clean-sales: ## Limpa apenas o SalesService
+	@echo "$(YELLOW)🧹 Limpando SalesService...$(NC)"
+	dotnet clean src/SalesService/SoaEcommerce.SalesService
+	rm -rf src/SalesService/SoaEcommerce.SalesService/bin 2>/dev/null || true
+	rm -rf src/SalesService/SoaEcommerce.SalesService/obj 2>/dev/null || true
+
+clean-composition: ## Limpa apenas o CompositionService
+	@echo "$(YELLOW)🧹 Limpando CompositionService...$(NC)"
+	dotnet clean src/CompositionService/SoaEcommerce.CompositionService
+	rm -rf src/CompositionService/SoaEcommerce.CompositionService/bin 2>/dev/null || true
+	rm -rf src/CompositionService/SoaEcommerce.CompositionService/obj 2>/dev/null || true
+
+clean-contracts: ## Limpa apenas os Contracts
+	@echo "$(YELLOW)🧹 Limpando Contracts...$(NC)"
+	dotnet clean src/Contracts/SoaEcommerce.Contracts
+	rm -rf src/Contracts/SoaEcommerce.Contracts/bin 2>/dev/null || true
+	rm -rf src/Contracts/SoaEcommerce.Contracts/obj 2>/dev/null || true
+
+clean-clients: ## Limpa apenas os Clients
+	@echo "$(YELLOW)🧹 Limpando Clients...$(NC)"
+	dotnet clean src/Clients/SoaEcommerce.Clients
+	rm -rf src/Clients/SoaEcommerce.Clients/bin 2>/dev/null || true
+	rm -rf src/Clients/SoaEcommerce.Clients/obj 2>/dev/null || true
+
+clean-tests: ## Limpa apenas os Tests
+	@echo "$(YELLOW)🧹 Limpando Tests...$(NC)"
+	dotnet clean tests/CompositionService.Tests/SoaEcommerce.CompositionService.Tests
+	rm -rf tests/CompositionService.Tests/SoaEcommerce.CompositionService.Tests/bin 2>/dev/null || true
+	rm -rf tests/CompositionService.Tests/SoaEcommerce.CompositionService.Tests/obj 2>/dev/null || true
 
 # =============================================================================
 # MIGRAÇÕES DE BANCO
@@ -66,35 +141,79 @@ migrate-sales: ## Executa migrações do SalesService
 # =============================================================================
 
 run-all: ## Executa todos os serviços localmente (em background)
-	@echo "$(YELLOW)🚀 Iniciando todos os serviços...$(NC)"
+	@echo "$(YELLOW)🚀 Iniciando todos os serviços em background...$(NC)"
 	@echo "$(BLUE)📝 Use 'make logs' para ver os logs$(NC)"
 	@echo "$(BLUE)📝 Use 'make stop-all' para parar todos os serviços$(NC)"
-	$(MAKE) run-customer &
-	$(MAKE) run-catalog &
-	$(MAKE) run-sales &
-	$(MAKE) run-composition &
-	@echo "$(GREEN)✅ Todos os serviços iniciados!$(NC)"
+	@echo "$(BLUE)📝 Use 'make status' para verificar status$(NC)"
+	$(MAKE) run-customer-bg &
+	$(MAKE) run-catalog-bg &
+	$(MAKE) run-sales-bg &
+	$(MAKE) run-composition-bg &
+	@echo "$(GREEN)✅ Todos os serviços iniciados em background!$(NC)"
+	@echo "$(BLUE)⏳ Aguardando inicialização...$(NC)"
+	@sleep 5
+	$(MAKE) status
 
-run-customer: ## Executa CustomerService
+run-customer: ## Executa CustomerService (foreground)
 	@echo "$(YELLOW)👤 Iniciando CustomerService na porta 7001...$(NC)"
 	dotnet run --project src/CustomerService/SoaEcommerce.CustomerService
 
-run-catalog: ## Executa CatalogService
+run-catalog: ## Executa CatalogService (foreground)
 	@echo "$(YELLOW)📦 Iniciando CatalogService na porta 7002...$(NC)"
 	dotnet run --project src/CatalogService/SoaEcommerce.CatalogService
 
-run-sales: ## Executa SalesService
+run-sales: ## Executa SalesService (foreground)
 	@echo "$(YELLOW)💰 Iniciando SalesService na porta 7003...$(NC)"
 	dotnet run --project src/SalesService/SoaEcommerce.SalesService
 
-run-composition: ## Executa CompositionService
+run-composition: ## Executa CompositionService (foreground)
 	@echo "$(YELLOW)🎯 Iniciando CompositionService na porta 7000...$(NC)"
 	dotnet run --project src/CompositionService/SoaEcommerce.CompositionService
+
+run-customer-bg: ## Executa CustomerService em background
+	@echo "$(YELLOW)👤 Iniciando CustomerService em background (porta 7001)...$(NC)"
+	@mkdir -p logs
+	@nohup dotnet run --project src/CustomerService/SoaEcommerce.CustomerService > logs/customer-service.log 2>&1 &
+
+run-catalog-bg: ## Executa CatalogService em background
+	@echo "$(YELLOW)📦 Iniciando CatalogService em background (porta 7002)...$(NC)"
+	@mkdir -p logs
+	@nohup dotnet run --project src/CatalogService/SoaEcommerce.CatalogService > logs/catalog-service.log 2>&1 &
+
+run-sales-bg: ## Executa SalesService em background
+	@echo "$(YELLOW)💰 Iniciando SalesService em background (porta 7003)...$(NC)"
+	@mkdir -p logs
+	@nohup dotnet run --project src/SalesService/SoaEcommerce.SalesService > logs/sales-service.log 2>&1 &
+
+run-composition-bg: ## Executa CompositionService em background
+	@echo "$(YELLOW)🎯 Iniciando CompositionService em background (porta 7000)...$(NC)"
+	@mkdir -p logs
+	@nohup dotnet run --project src/CompositionService/SoaEcommerce.CompositionService > logs/composition-service.log 2>&1 &
 
 stop-all: ## Para todos os processos .NET
 	@echo "$(YELLOW)🛑 Parando todos os serviços...$(NC)"
 	pkill -f "dotnet run" || true
 	@echo "$(GREEN)✅ Serviços parados!$(NC)"
+
+stop-customer: ## Para apenas o CustomerService
+	@echo "$(YELLOW)🛑 Parando CustomerService...$(NC)"
+	pkill -f "dotnet run.*CustomerService" || true
+	@echo "$(GREEN)✅ CustomerService parado!$(NC)"
+
+stop-catalog: ## Para apenas o CatalogService
+	@echo "$(YELLOW)🛑 Parando CatalogService...$(NC)"
+	pkill -f "dotnet run.*CatalogService" || true
+	@echo "$(GREEN)✅ CatalogService parado!$(NC)"
+
+stop-sales: ## Para apenas o SalesService
+	@echo "$(YELLOW)🛑 Parando SalesService...$(NC)"
+	pkill -f "dotnet run.*SalesService" || true
+	@echo "$(GREEN)✅ SalesService parado!$(NC)"
+
+stop-composition: ## Para apenas o CompositionService
+	@echo "$(YELLOW)🛑 Parando CompositionService...$(NC)"
+	pkill -f "dotnet run.*CompositionService" || true
+	@echo "$(GREEN)✅ CompositionService parado!$(NC)"
 
 # =============================================================================
 # DOCKER
@@ -134,6 +253,70 @@ test-soap: ## Executa testes SOAP manuais
 	chmod +x scripts/test-soap-services.sh
 	./scripts/test-soap-services.sh
 
+test-customer: ## Testa apenas o CustomerService
+	@echo "$(YELLOW)🧪 Testando CustomerService...$(NC)"
+	@echo "$(BLUE)Testando endpoint SOAP...$(NC)"
+	@if curl -s http://localhost:7001/soap > /dev/null; then \
+		echo "$(GREEN)✅ Endpoint SOAP acessível$(NC)"; \
+	else \
+		echo "$(RED)❌ Endpoint SOAP não acessível$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Testando operação CreateCustomer...$(NC)"
+	@curl -X POST http://localhost:7001/soap \
+		-H "Content-Type: text/xml; charset=utf-8" \
+		-H "SOAPAction: urn:soa-ecommerce:v1:customers/ICustomerService/CreateCustomer" \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:customers="urn:soa-ecommerce:v1:customers"><soapenv:Header/><soapenv:Body><customers:CreateCustomer><customers:request><Email>test@example.com</Email><Name>Test User</Name><Phone>123456789</Phone></customers:request></customers:CreateCustomer></soapenv:Body></soapenv:Envelope>' \
+		-s | grep -q "CreateCustomerResponse" && echo "$(GREEN)✅ CreateCustomer funcionando$(NC)" || echo "$(RED)❌ CreateCustomer falhou$(NC)"
+
+test-catalog: ## Testa apenas o CatalogService
+	@echo "$(YELLOW)🧪 Testando CatalogService...$(NC)"
+	@echo "$(BLUE)Testando endpoint SOAP...$(NC)"
+	@if curl -s http://localhost:7002/soap > /dev/null; then \
+		echo "$(GREEN)✅ Endpoint SOAP acessível$(NC)"; \
+	else \
+		echo "$(RED)❌ Endpoint SOAP não acessível$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Testando operação CreateProduct...$(NC)"
+	@curl -X POST http://localhost:7002/soap \
+		-H "Content-Type: text/xml; charset=utf-8" \
+		-H "SOAPAction: urn:soa-ecommerce:v1:catalog/ICatalogService/CreateProduct" \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:catalog="urn:soa-ecommerce:v1:catalog"><soapenv:Header/><soapenv:Body><catalog:CreateProduct><catalog:request><Name>Test Product</Name><Description>Test Description</Description><Price>99.99</Price><StockQuantity>10</StockQuantity></catalog:request></catalog:CreateProduct></soapenv:Body></soapenv:Envelope>' \
+		-s | grep -q "CreateProductResponse" && echo "$(GREEN)✅ CreateProduct funcionando$(NC)" || echo "$(RED)❌ CreateProduct falhou$(NC)"
+
+test-sales: ## Testa apenas o SalesService
+	@echo "$(YELLOW)🧪 Testando SalesService...$(NC)"
+	@echo "$(BLUE)Testando endpoint SOAP...$(NC)"
+	@if curl -s http://localhost:7003/soap > /dev/null; then \
+		echo "$(GREEN)✅ Endpoint SOAP acessível$(NC)"; \
+	else \
+		echo "$(RED)❌ Endpoint SOAP não acessível$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Testando operação CreateOrder...$(NC)"
+	@curl -X POST http://localhost:7003/soap \
+		-H "Content-Type: text/xml; charset=utf-8" \
+		-H "SOAPAction: urn:soa-ecommerce:v1:sales/ISalesService/CreateOrder" \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sales="urn:soa-ecommerce:v1:sales"><soapenv:Header/><soapenv:Body><sales:CreateOrder><sales:request><CustomerId>11111111-1111-1111-1111-111111111111</CustomerId><Items><OrderItem><ProductId>11111111-1111-1111-1111-111111111111</ProductId><Quantity>1</Quantity><UnitPrice>99.99</UnitPrice></OrderItem></Items></sales:request></sales:CreateOrder></soapenv:Body></soapenv:Envelope>' \
+		-s | grep -q "CreateOrderResponse" && echo "$(GREEN)✅ CreateOrder funcionando$(NC)" || echo "$(RED)❌ CreateOrder falhou$(NC)"
+
+test-composition: ## Testa apenas o CompositionService
+	@echo "$(YELLOW)🧪 Testando CompositionService...$(NC)"
+	@echo "$(BLUE)Testando endpoint SOAP...$(NC)"
+	@if curl -s http://localhost:7000/soap > /dev/null; then \
+		echo "$(GREEN)✅ Endpoint SOAP acessível$(NC)"; \
+	else \
+		echo "$(RED)❌ Endpoint SOAP não acessível$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Testando operação PlaceOrder...$(NC)"
+	@curl -X POST http://localhost:7000/soap \
+		-H "Content-Type: text/xml; charset=utf-8" \
+		-H "SOAPAction: urn:soa-ecommerce:v1:process/ICompositionService/PlaceOrder" \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:process="urn:soa-ecommerce:v1:process"><soapenv:Header/><soapenv:Body><process:PlaceOrder><process:request><CustomerEmail>test@example.com</CustomerEmail><Items><OrderItem><ProductName>Test Product</ProductName><Quantity>1</Quantity><UnitPrice>99.99</UnitPrice></OrderItem></Items></process:request></process:PlaceOrder></soapenv:Body></soapenv:Envelope>' \
+		-s | grep -q "PlaceOrderResponse" && echo "$(GREEN)✅ PlaceOrder funcionando$(NC)" || echo "$(RED)❌ PlaceOrder falhou$(NC)"
+
 # =============================================================================
 # UTILITÁRIOS
 # =============================================================================
@@ -158,13 +341,51 @@ health-check: ## Verifica saúde dos serviços
 	@echo "$(BLUE)SalesService:$(NC)"
 	curl -s http://localhost:7003/health || echo "$(RED)❌ Indisponível$(NC)"
 
-logs: ## Mostra logs dos serviços (se executando localmente)
+logs: ## Mostra logs dos serviços em background
 	@echo "$(YELLOW)📋 Mostrando logs dos serviços...$(NC)"
 	@echo "$(BLUE)Use Ctrl+C para sair$(NC)"
-	@if [ -d "logs" ]; then \
-		tail -f logs/*.txt; \
+	@mkdir -p logs
+	@if [ -f "logs/customer-service.log" ] || [ -f "logs/catalog-service.log" ] || [ -f "logs/sales-service.log" ] || [ -f "logs/composition-service.log" ]; then \
+		tail -f logs/*.log; \
 	else \
 		echo "$(RED)Nenhum arquivo de log encontrado$(NC)"; \
+		echo "$(BLUE)Execute 'make run-all' primeiro para iniciar os serviços$(NC)"; \
+	fi
+
+logs-customer: ## Mostra logs do CustomerService
+	@echo "$(YELLOW)📋 Mostrando logs do CustomerService...$(NC)"
+	@echo "$(BLUE)Use Ctrl+C para sair$(NC)"
+	@if [ -f "logs/customer-service.log" ]; then \
+		tail -f logs/customer-service.log; \
+	else \
+		echo "$(RED)Log do CustomerService não encontrado$(NC)"; \
+	fi
+
+logs-catalog: ## Mostra logs do CatalogService
+	@echo "$(YELLOW)📋 Mostrando logs do CatalogService...$(NC)"
+	@echo "$(BLUE)Use Ctrl+C para sair$(NC)"
+	@if [ -f "logs/catalog-service.log" ]; then \
+		tail -f logs/catalog-service.log; \
+	else \
+		echo "$(RED)Log do CatalogService não encontrado$(NC)"; \
+	fi
+
+logs-sales: ## Mostra logs do SalesService
+	@echo "$(YELLOW)📋 Mostrando logs do SalesService...$(NC)"
+	@echo "$(BLUE)Use Ctrl+C para sair$(NC)"
+	@if [ -f "logs/sales-service.log" ]; then \
+		tail -f logs/sales-service.log; \
+	else \
+		echo "$(RED)Log do SalesService não encontrado$(NC)"; \
+	fi
+
+logs-composition: ## Mostra logs do CompositionService
+	@echo "$(YELLOW)📋 Mostrando logs do CompositionService...$(NC)"
+	@echo "$(BLUE)Use Ctrl+C para sair$(NC)"
+	@if [ -f "logs/composition-service.log" ]; then \
+		tail -f logs/composition-service.log; \
+	else \
+		echo "$(RED)Log do CompositionService não encontrado$(NC)"; \
 	fi
 
 # =============================================================================
@@ -202,9 +423,22 @@ prod-deploy: prod-build docker-up ## Deploy para produção
 status: ## Mostra status dos serviços
 	@echo "$(YELLOW)📊 Status dos serviços:$(NC)"
 	@echo "$(BLUE)Processos .NET:$(NC)"
-	ps aux | grep "dotnet run" | grep -v grep || echo "$(RED)Nenhum processo .NET encontrado$(NC)"
+	@if ps aux | grep "dotnet run" | grep -v grep > /dev/null; then \
+		ps aux | grep "dotnet run" | grep -v grep; \
+	else \
+		echo "$(RED)Nenhum processo .NET encontrado$(NC)"; \
+	fi
+	@echo "$(BLUE)Portas em uso:$(NC)"
+	@if lsof -i :7000 > /dev/null 2>&1; then echo "$(GREEN)✅ Porta 7000 (CompositionService) - Ativa$(NC)"; else echo "$(RED)❌ Porta 7000 (CompositionService) - Inativa$(NC)"; fi
+	@if lsof -i :7001 > /dev/null 2>&1; then echo "$(GREEN)✅ Porta 7001 (CustomerService) - Ativa$(NC)"; else echo "$(RED)❌ Porta 7001 (CustomerService) - Inativa$(NC)"; fi
+	@if lsof -i :7002 > /dev/null 2>&1; then echo "$(GREEN)✅ Porta 7002 (CatalogService) - Ativa$(NC)"; else echo "$(RED)❌ Porta 7002 (CatalogService) - Inativa$(NC)"; fi
+	@if lsof -i :7003 > /dev/null 2>&1; then echo "$(GREEN)✅ Porta 7003 (SalesService) - Ativa$(NC)"; else echo "$(RED)❌ Porta 7003 (SalesService) - Inativa$(NC)"; fi
 	@echo "$(BLUE)Containers Docker:$(NC)"
-	docker ps --filter "name=soa" || echo "$(RED)Nenhum container SOA encontrado$(NC)"
+	@if docker ps --filter "name=soa" --filter "name=pg-" > /dev/null 2>&1; then \
+		docker ps --filter "name=soa" --filter "name=pg-"; \
+	else \
+		echo "$(RED)Nenhum container SOA encontrado$(NC)"; \
+	fi
 
 ports: ## Mostra portas utilizadas
 	@echo "$(YELLOW)🔌 Portas utilizadas:$(NC)"

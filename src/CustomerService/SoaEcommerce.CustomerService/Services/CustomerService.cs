@@ -24,6 +24,27 @@ public class CustomerService : ICustomerService
 
         try
         {
+            // Se já existir cliente com o mesmo email, retornar o existente como sucesso
+            var existing = _context.Customers.AsNoTracking().FirstOrDefault(c => c.Email == request.Email);
+            if (existing != null)
+            {
+                _logger.LogInformation("Cliente já existe, retornando existente: {Email}", request.Email);
+                return new CreateCustomerResponse
+                {
+                    CustomerId = existing.Id,
+                    Success = true,
+                    Message = "Cliente já existente",
+                    Customer = new CustomerDto
+                    {
+                        Id = existing.Id,
+                        Name = existing.Name,
+                        Email = existing.Email,
+                        Status = (Contracts.CustomerStatus)existing.Status,
+                        CreatedAt = existing.CreatedAt
+                    }
+                };
+            }
+
             var customer = new Customer
             {
                 Id = Guid.NewGuid(),
@@ -42,7 +63,15 @@ public class CustomerService : ICustomerService
             {
                 CustomerId = customer.Id,
                 Success = true,
-                Message = "Cliente criado com sucesso"
+                Message = "Cliente criado com sucesso",
+                Customer = new CustomerDto
+                {
+                    Id = customer.Id,
+                    Name = customer.Name,
+                    Email = customer.Email,
+                    Status = (Contracts.CustomerStatus)customer.Status,
+                    CreatedAt = customer.CreatedAt
+                }
             };
         }
         catch (Exception ex)
