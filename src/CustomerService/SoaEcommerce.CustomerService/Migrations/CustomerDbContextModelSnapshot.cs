@@ -55,7 +55,7 @@ namespace SoaEcommerce.CustomerService.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedAt = new DateTime(2025, 7, 21, 9, 34, 44, 970, DateTimeKind.Utc).AddTicks(6140),
+                            CreatedAt = new DateTime(2025, 7, 22, 8, 47, 45, 891, DateTimeKind.Utc).AddTicks(680),
                             Email = "joao.silva@email.com",
                             Name = "João Silva",
                             Status = 0
@@ -63,7 +63,7 @@ namespace SoaEcommerce.CustomerService.Migrations
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedAt = new DateTime(2025, 8, 5, 9, 34, 44, 970, DateTimeKind.Utc).AddTicks(6170),
+                            CreatedAt = new DateTime(2025, 8, 6, 8, 47, 45, 891, DateTimeKind.Utc).AddTicks(700),
                             Email = "maria.santos@email.com",
                             Name = "Maria Santos",
                             Status = 0

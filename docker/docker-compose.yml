@@ -1,4 +1,4 @@
-# Docker Compose para SOA E-commerce - Apenas Bancos de Dados
+# Docker Compose para SOA E-commerce - Bancos de Dados e Cliente Web
 
 services:
   # Banco de dados PostgreSQL para CustomerService
@@ -54,6 +54,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Cliente Web para PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - pg-customers
+      - pg-catalog
+      - pg-sales
 
 volumes:
   pg_customers_data:

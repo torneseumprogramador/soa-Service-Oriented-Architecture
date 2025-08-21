@@ -32,4 +32,5 @@ public class CatalogClient : BaseSoapClient, ICatalogClient
     }
 
     protected override string GetServiceNamespace() => "catalog";
+    protected override string GetServiceName() => "Catalog";
 }

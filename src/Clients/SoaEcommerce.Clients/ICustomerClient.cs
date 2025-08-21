@@ -7,4 +7,5 @@ public interface ICustomerClient
     CreateCustomerResponse CreateCustomer(CreateCustomerRequest request);
     GetCustomerResponse GetCustomer(GetCustomerRequest request);
     GetCustomerStatusResponse GetCustomerStatus(GetCustomerStatusRequest request);
+    GetCustomerByEmailResponse GetCustomerByEmail(GetCustomerByEmailRequest request);
 }

@@ -29,19 +29,28 @@ public class CompositionService : ICompositionService
 
     public PlaceOrderResponse PlaceOrder(PlaceOrderRequest request)
     {
-        _logger.LogInformation("Iniciando PlaceOrder para cliente: {CustomerId}", request.CustomerId);
+        _logger.LogInformation("Iniciando PlaceOrder para cliente: {CustomerEmail}", request.CustomerEmail);
 
         try
         {
-            // 1. Validar cliente
-            var customerStatus = _customerClient.GetCustomerStatus(new GetCustomerStatusRequest
+            // 1. Buscar cliente por email
+            var customerResponse = _customerClient.GetCustomerByEmail(new GetCustomerByEmailRequest
             {
-                CustomerId = request.CustomerId
+                Email = request.CustomerEmail
             });
 
-            if (!customerStatus.IsActive)
+            if (!customerResponse.Success || customerResponse.Customer == null)
             {
-                _logger.LogWarning("Cliente inativo: {CustomerId}", request.CustomerId);
+                _logger.LogWarning("Cliente não encontrado: {CustomerEmail}", request.CustomerEmail);
+                throw Faults.InvalidCustomer();
+            }
+
+            var customer = customerResponse.Customer;
+
+            // 2. Validar status do cliente
+            if (customer.Status != Contracts.CustomerStatus.Active)
+            {
+                _logger.LogWarning("Cliente inativo: {CustomerEmail}", request.CustomerEmail);
                 throw Faults.InvalidCustomer();
             }
 
@@ -66,7 +75,7 @@ public class CompositionService : ICompositionService
             // 3. Criar pedido
             var createOrderRequest = new CreateOrderRequest
             {
-                CustomerId = request.CustomerId,
+                CustomerId = customer.Id,
                 Items = reserveResponse.PricedLines.Select(line => new OrderItemInput
                 {
                     ProductId = line.ProductId,
@@ -139,7 +148,7 @@ public class CompositionService : ICompositionService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro inesperado no PlaceOrder para cliente: {CustomerId}", request.CustomerId);
+            _logger.LogError(ex, "Erro inesperado no PlaceOrder para cliente: {CustomerEmail}", request.CustomerEmail);
             throw Faults.InvalidRequest($"Erro inesperado: {ex.Message}");
         }
     }

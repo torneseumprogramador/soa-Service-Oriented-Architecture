@@ -33,8 +33,8 @@ namespace SoaEcommerce.CustomerService.Migrations
                 columns: new[] { "Id", "CreatedAt", "Email", "Name", "Status" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), new DateTime(2025, 7, 21, 9, 34, 44, 970, DateTimeKind.Utc).AddTicks(6140), "joao.silva@email.com", "João Silva", 0 },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), new DateTime(2025, 8, 5, 9, 34, 44, 970, DateTimeKind.Utc).AddTicks(6170), "maria.santos@email.com", "Maria Santos", 0 }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), new DateTime(2025, 7, 22, 8, 47, 45, 891, DateTimeKind.Utc).AddTicks(680), "joao.silva@email.com", "João Silva", 0 },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), new DateTime(2025, 8, 6, 8, 47, 45, 891, DateTimeKind.Utc).AddTicks(700), "maria.santos@email.com", "Maria Santos", 0 }
                 });
 
             migrationBuilder.CreateIndex(

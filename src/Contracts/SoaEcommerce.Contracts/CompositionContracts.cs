@@ -13,8 +13,8 @@ public interface ICompositionService
 [XmlRoot("PlaceOrderRequest", Namespace = "urn:soa-ecommerce:v1:process")]
 public class PlaceOrderRequest
 {
-    [XmlElement("CustomerId")]
-    public Guid CustomerId { get; set; }
+    [XmlElement("CustomerEmail")]
+    public string CustomerEmail { get; set; } = string.Empty;
 
     [XmlArray("Items"), XmlArrayItem("Item")]
     public List<PlaceOrderItem> Items { get; set; } = new();

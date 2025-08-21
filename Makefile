@@ -8,7 +8,7 @@
 .PHONY: run-customer-bg run-catalog-bg run-sales-bg run-composition-bg
 .PHONY: stop-all stop-customer stop-catalog stop-sales stop-composition
 .PHONY: migrate-all migrate-customer migrate-catalog migrate-sales
-.PHONY: generate-proxies test-soap test-customer health-check logs
+.PHONY: generate-proxies test-customer test-catalog test-sales test-composition health-check logs
 .PHONY: logs-customer logs-catalog logs-sales logs-composition
 
 # Variáveis
@@ -248,10 +248,7 @@ test: ## Executa todos os testes
 	@echo "$(YELLOW)🧪 Executando testes...$(NC)"
 	dotnet test tests/CompositionService.Tests/SoaEcommerce.CompositionService.Tests/
 
-test-soap: ## Executa testes SOAP manuais
-	@echo "$(YELLOW)🧪 Executando testes SOAP...$(NC)"
-	chmod +x scripts/test-soap-services.sh
-	./scripts/test-soap-services.sh
+
 
 test-customer: ## Testa apenas o CustomerService
 	@echo "$(YELLOW)🧪 Testando CustomerService...$(NC)"
@@ -266,7 +263,7 @@ test-customer: ## Testa apenas o CustomerService
 	@curl -X POST http://localhost:7001/soap \
 		-H "Content-Type: text/xml; charset=utf-8" \
 		-H "SOAPAction: urn:soa-ecommerce:v1:customers/ICustomerService/CreateCustomer" \
-		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:customers="urn:soa-ecommerce:v1:customers"><soapenv:Header/><soapenv:Body><customers:CreateCustomer><customers:request><Email>test@example.com</Email><Name>Test User</Name><Phone>123456789</Phone></customers:request></customers:CreateCustomer></soapenv:Body></soapenv:Envelope>' \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:customers="urn:soa-ecommerce:v1:customers"><soapenv:Header/><soapenv:Body><customers:CreateCustomer><customers:request><Name>Test User</Name><Email>test@example.com</Email></customers:request></customers:CreateCustomer></soapenv:Body></soapenv:Envelope>' \
 		-s | grep -q "CreateCustomerResponse" && echo "$(GREEN)✅ CreateCustomer funcionando$(NC)" || echo "$(RED)❌ CreateCustomer falhou$(NC)"
 
 test-catalog: ## Testa apenas o CatalogService
@@ -294,11 +291,22 @@ test-sales: ## Testa apenas o SalesService
 		echo "$(RED)❌ Endpoint SOAP não acessível$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)Testando operação CreateOrder...$(NC)"
-	@curl -X POST http://localhost:7003/soap \
+	@echo "$(BLUE)Criando cliente para teste...$(NC)"
+	@CUSTOMER_RESPONSE=$$(curl -s -X POST http://localhost:7001/soap \
+		-H "Content-Type: text/xml; charset=utf-8" \
+		-H "SOAPAction: urn:soa-ecommerce:v1:customers/ICustomerService/CreateCustomer" \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:customers="urn:soa-ecommerce:v1:customers"><soapenv:Header/><soapenv:Body><customers:CreateCustomer><customers:request><Email>sales-test-$$(date +%s)@example.com</Email><Name>Sales Test User</Name></customers:request></customers:CreateCustomer></soapenv:Body></soapenv:Envelope>'); \
+	CUSTOMER_ID=$$(echo "$$CUSTOMER_RESPONSE" | grep -o '<a:CustomerId>[^<]*</a:CustomerId>' | sed 's/<a:CustomerId>\(.*\)<\/a:CustomerId>/\1/'); \
+	if [ -z "$$CUSTOMER_ID" ]; then \
+		echo "$(RED)❌ Falha ao criar cliente para teste$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(GREEN)✅ Cliente criado: $$CUSTOMER_ID$(NC)"; \
+	echo "$(BLUE)Testando operação CreateOrder...$(NC)"; \
+	curl -X POST http://localhost:7003/soap \
 		-H "Content-Type: text/xml; charset=utf-8" \
 		-H "SOAPAction: urn:soa-ecommerce:v1:sales/ISalesService/CreateOrder" \
-		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sales="urn:soa-ecommerce:v1:sales"><soapenv:Header/><soapenv:Body><sales:CreateOrder><sales:request><CustomerId>11111111-1111-1111-1111-111111111111</CustomerId><Items><OrderItem><ProductId>11111111-1111-1111-1111-111111111111</ProductId><Quantity>1</Quantity><UnitPrice>99.99</UnitPrice></OrderItem></Items></sales:request></sales:CreateOrder></soapenv:Body></soapenv:Envelope>' \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sales="urn:soa-ecommerce:v1:sales"><soapenv:Header/><soapenv:Body><sales:CreateOrder><sales:request><CustomerId>'"$$CUSTOMER_ID"'</CustomerId><Items><OrderItem><ProductId>33333333-3333-3333-3333-333333333333</ProductId><Quantity>1</Quantity><UnitPrice>99.99</UnitPrice></OrderItem></Items></sales:request></sales:CreateOrder></soapenv:Body></soapenv:Envelope>' \
 		-s | grep -q "CreateOrderResponse" && echo "$(GREEN)✅ CreateOrder funcionando$(NC)" || echo "$(RED)❌ CreateOrder falhou$(NC)"
 
 test-composition: ## Testa apenas o CompositionService
@@ -310,11 +318,23 @@ test-composition: ## Testa apenas o CompositionService
 		echo "$(RED)❌ Endpoint SOAP não acessível$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(BLUE)Testando operação PlaceOrder...$(NC)"
-	@curl -X POST http://localhost:7000/soap \
+	@echo "$(BLUE)Criando cliente para teste...$(NC)"
+	@CUSTOMER_EMAIL="teste@teste.com"; \
+	CUSTOMER_RESPONSE=$$(curl -s -X POST http://localhost:7001/soap \
+		-H "Content-Type: text/xml; charset=utf-8" \
+		-H "SOAPAction: urn:soa-ecommerce:v1:customers/ICustomerService/CreateCustomer" \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:customers="urn:soa-ecommerce:v1:customers"><soapenv:Header/><soapenv:Body><customers:CreateCustomer><customers:request><Email>'"$$CUSTOMER_EMAIL"'</Email><Name>Composition Test User</Name></customers:request></customers:CreateCustomer></soapenv:Body></soapenv:Envelope>'); \
+	CUSTOMER_ID=$$(echo "$$CUSTOMER_RESPONSE" | grep -o '<a:CustomerId>[^<]*</a:CustomerId>' | sed 's/<a:CustomerId>\(.*\)<\/a:CustomerId>/\1/'); \
+	if [ -z "$$CUSTOMER_ID" ]; then \
+		echo "$(RED)❌ Falha ao criar cliente para teste$(NC)"; \
+		exit 1; \
+	fi; \
+	echo "$(GREEN)✅ Cliente criado: ID=$$CUSTOMER_ID, Email=$$CUSTOMER_EMAIL$(NC)"; \
+	echo "$(BLUE)Testando operação PlaceOrder...$(NC)"; \
+	curl -X POST http://localhost:7000/soap \
 		-H "Content-Type: text/xml; charset=utf-8" \
 		-H "SOAPAction: urn:soa-ecommerce:v1:process/ICompositionService/PlaceOrder" \
-		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:process="urn:soa-ecommerce:v1:process"><soapenv:Header/><soapenv:Body><process:PlaceOrder><process:request><CustomerEmail>test@example.com</CustomerEmail><Items><OrderItem><ProductName>Test Product</ProductName><Quantity>1</Quantity><UnitPrice>99.99</UnitPrice></OrderItem></Items></process:request></process:PlaceOrder></soapenv:Body></soapenv:Envelope>' \
+		-d '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:process="urn:soa-ecommerce:v1:process"><soapenv:Header/><soapenv:Body><process:PlaceOrder><process:request><CustomerEmail>'"$$CUSTOMER_EMAIL"'</CustomerEmail><Items><Item><ProductId>33333333-3333-3333-3333-333333333333</ProductId><Quantity>1</Quantity></Item></Items></process:request></process:PlaceOrder></soapenv:Body></soapenv:Envelope>' \
 		-s | grep -q "PlaceOrderResponse" && echo "$(GREEN)✅ PlaceOrder funcionando$(NC)" || echo "$(RED)❌ PlaceOrder falhou$(NC)"
 
 # =============================================================================

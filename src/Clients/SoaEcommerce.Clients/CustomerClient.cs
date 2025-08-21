@@ -26,5 +26,11 @@ public class CustomerClient : BaseSoapClient, ICustomerClient
         return SendSoapRequestAsync<GetCustomerStatusResponse>("GetCustomerStatus", request).GetAwaiter().GetResult();
     }
 
+    public GetCustomerByEmailResponse GetCustomerByEmail(GetCustomerByEmailRequest request)
+    {
+        return SendSoapRequestAsync<GetCustomerByEmailResponse>("GetCustomerByEmail", request).GetAwaiter().GetResult();
+    }
+
     protected override string GetServiceNamespace() => "customers";
+    protected override string GetServiceName() => "Customer";
 }

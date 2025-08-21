@@ -32,4 +32,5 @@ public class SalesClient : BaseSoapClient, ISalesClient
     }
 
     protected override string GetServiceNamespace() => "sales";
+    protected override string GetServiceName() => "Sales";
 }

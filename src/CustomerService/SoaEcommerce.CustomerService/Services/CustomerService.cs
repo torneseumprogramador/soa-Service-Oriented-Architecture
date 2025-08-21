@@ -20,15 +20,32 @@ public class CustomerService : ICustomerService
 
     public CreateCustomerResponse CreateCustomer(CreateCustomerRequest request)
     {
-        _logger.LogInformation("Criando cliente: {Email}", request.Email);
+        _logger.LogInformation("=== CreateCustomer chamado ===");
+        _logger.LogInformation("Request completo: {@Request}", request);
+        _logger.LogInformation("Email recebido: '{Email}'", request.Email);
+        _logger.LogInformation("Nome recebido: '{Name}'", request.Name);
 
         try
         {
+            // Validação: não permitir nome ou email vazios
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                _logger.LogWarning("Tentativa de criar cliente com nome vazio");
+                throw Faults.InvalidRequest("Nome é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                _logger.LogWarning("Tentativa de criar cliente com email vazio");
+                throw Faults.InvalidRequest("Email é obrigatório");
+            }
             // Se já existir cliente com o mesmo email, retornar o existente como sucesso
-            var existing = _context.Customers.AsNoTracking().FirstOrDefault(c => c.Email == request.Email);
+            var existing = _context.Customers.FirstOrDefault(c => c.Email == request.Email);
             if (existing != null)
             {
                 _logger.LogInformation("Cliente já existe, retornando existente: {Email}", request.Email);
+                _logger.LogInformation("Dados do cliente existente: Id={Id}, Name={Name}, Email={Email}", existing.Id, existing.Name, existing.Email);
+                
                 return new CreateCustomerResponse
                 {
                     CustomerId = existing.Id,
@@ -59,18 +76,21 @@ public class CustomerService : ICustomerService
 
             _logger.LogInformation("Cliente criado com sucesso: {CustomerId}", customer.Id);
 
+            // Buscar o cliente completo do banco para garantir que todos os dados estão corretos
+            var savedCustomer = _context.Customers.FirstOrDefault(c => c.Id == customer.Id);
+            
             return new CreateCustomerResponse
             {
-                CustomerId = customer.Id,
+                CustomerId = savedCustomer.Id,
                 Success = true,
                 Message = "Cliente criado com sucesso",
                 Customer = new CustomerDto
                 {
-                    Id = customer.Id,
-                    Name = customer.Name,
-                    Email = customer.Email,
-                    Status = (Contracts.CustomerStatus)customer.Status,
-                    CreatedAt = customer.CreatedAt
+                    Id = savedCustomer.Id,
+                    Name = savedCustomer.Name,
+                    Email = savedCustomer.Email,
+                    Status = (Contracts.CustomerStatus)savedCustomer.Status,
+                    CreatedAt = savedCustomer.CreatedAt
                 }
             };
         }
@@ -116,7 +136,13 @@ public class CustomerService : ICustomerService
         if (customer == null)
         {
             _logger.LogWarning("Cliente não encontrado: {CustomerId}", request.CustomerId);
-            throw Faults.InvalidCustomer();
+            // Retorna resposta indicando que o cliente não está ativo ao invés de lançar exceção
+            return new GetCustomerStatusResponse
+            {
+                IsActive = false,
+                Score = 0,
+                Success = false
+            };
         }
 
         // Mock score baseado na data de criação
@@ -127,6 +153,40 @@ public class CustomerService : ICustomerService
             IsActive = customer.Status == CustomerStatus.Active,
             Score = score,
             Success = true
+        };
+    }
+
+    public GetCustomerByEmailResponse GetCustomerByEmail(GetCustomerByEmailRequest request)
+    {
+        _logger.LogInformation("=== GetCustomerByEmail chamado ===");
+        _logger.LogInformation("Buscando cliente por email: '{Email}'", request.Email);
+        _logger.LogInformation("Request completo: {@Request}", request);
+
+        var customer = _context.Customers.FirstOrDefault(c => c.Email == request.Email);
+
+        if (customer == null)
+        {
+            _logger.LogWarning("Cliente não encontrado: {Email}", request.Email);
+            return new GetCustomerByEmailResponse
+            {
+                Customer = null,
+                Success = false,
+                Message = "Cliente não encontrado"
+            };
+        }
+
+        return new GetCustomerByEmailResponse
+        {
+            Customer = new CustomerDto
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Email = customer.Email,
+                Status = (Contracts.CustomerStatus)customer.Status,
+                CreatedAt = customer.CreatedAt
+            },
+            Success = true,
+            Message = "Cliente encontrado"
         };
     }
 }

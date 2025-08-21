@@ -43,7 +43,8 @@ app.UseServiceModel(sm =>
     var binding = new BasicHttpBinding
     {
         MaxReceivedMessageSize = 65536,
-        ReaderQuotas = { MaxStringContentLength = 8192 }
+        ReaderQuotas = { MaxStringContentLength = 8192 },
+        MessageEncoding = WSMessageEncoding.Text
     };
 
     // Adicionar endpoint SOAP

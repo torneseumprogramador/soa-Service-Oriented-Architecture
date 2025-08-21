@@ -1,5 +1,6 @@
 using CoreWCF;
 using System.Xml.Serialization;
+using System.Runtime.Serialization;
 
 namespace SoaEcommerce.Contracts;
 
@@ -14,9 +15,12 @@ public interface ICustomerService
 
     [OperationContract]
     GetCustomerStatusResponse GetCustomerStatus(GetCustomerStatusRequest request);
+
+    [OperationContract]
+    GetCustomerByEmailResponse GetCustomerByEmail(GetCustomerByEmailRequest request);
 }
 
-[XmlRoot("CreateCustomerRequest", Namespace = "urn:soa-ecommerce:v1:customers")]
+[XmlRoot("CreateCustomerRequest")]
 public class CreateCustomerRequest
 {
     [XmlElement("Name")]
@@ -77,6 +81,26 @@ public class GetCustomerStatusResponse
 
     [XmlElement("Success")]
     public bool Success { get; set; }
+}
+
+[XmlRoot("GetCustomerByEmailRequest")]
+public class GetCustomerByEmailRequest
+{
+    [XmlElement("Email")]
+    public string Email { get; set; } = string.Empty;
+}
+
+[XmlRoot("GetCustomerByEmailResponse", Namespace = "urn:soa-ecommerce:v1:customers")]
+public class GetCustomerByEmailResponse
+{
+    [XmlElement("Customer")]
+    public CustomerDto? Customer { get; set; }
+
+    [XmlElement("Success")]
+    public bool Success { get; set; }
+
+    [XmlElement("Message")]
+    public string Message { get; set; } = string.Empty;
 }
 
 [XmlRoot("Customer", Namespace = "urn:soa-ecommerce:v1:customers")]

@@ -55,7 +55,7 @@ public abstract class BaseSoapClient
     {
         var soapEnvelope = CreateSoapEnvelope(operationName, request, correlationId);
         var content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
-        content.Headers.Add("SOAPAction", $"\"urn:soa-ecommerce:v1:{GetServiceNamespace()}:{operationName}\"");
+        content.Headers.Add("SOAPAction", $"\"urn:soa-ecommerce:v1:{GetServiceNamespace()}/I{GetServiceName()}Service/{operationName}\"");
 
         var response = await _circuitBreakerPolicy
             .WrapAsync(_retryPolicy)
@@ -120,4 +120,5 @@ public abstract class BaseSoapClient
     }
 
     protected abstract string GetServiceNamespace();
+    protected abstract string GetServiceName();
 }
