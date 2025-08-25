@@ -1,4 +1,5 @@
 using CoreWCF;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 
 namespace SoaEcommerce.Contracts;
@@ -11,22 +12,28 @@ public interface ICompositionService
 }
 
 [XmlRoot("PlaceOrderRequest", Namespace = "urn:soa-ecommerce:v1:process")]
+[DataContract(Namespace = "http://schemas.datacontract.org/2004/07/SoaEcommerce.Contracts")]
 public class PlaceOrderRequest
 {
     [XmlElement("CustomerEmail")]
+    [DataMember(Order = 1)]
     public string CustomerEmail { get; set; } = string.Empty;
 
     [XmlArray("Items"), XmlArrayItem("Item")]
+    [DataMember(Order = 2)]
     public List<PlaceOrderItem> Items { get; set; } = new();
 }
 
 [XmlRoot("PlaceOrderItem", Namespace = "urn:soa-ecommerce:v1:process")]
+[DataContract(Namespace = "http://schemas.datacontract.org/2004/07/SoaEcommerce.Contracts")]
 public class PlaceOrderItem
 {
     [XmlElement("ProductId")]
+    [DataMember(Order = 1)]
     public Guid ProductId { get; set; }
 
     [XmlElement("Quantity")]
+    [DataMember(Order = 2)]
     public int Quantity { get; set; }
 }
 

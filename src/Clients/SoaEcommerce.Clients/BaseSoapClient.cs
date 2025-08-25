@@ -55,6 +55,11 @@ public abstract class BaseSoapClient
     protected async Task<T> SendSoapRequestAsync<T>(string operationName, object request, string? correlationId = null)
     {
         var soapEnvelope = CreateSoapEnvelope(operationName, request, correlationId);
+        try
+        {
+            _logger.LogInformation("SOAP OUT [{Service}.{Operation}]:\n{Envelope}", GetServiceName(), operationName, soapEnvelope);
+        }
+        catch { /* logging best-effort */ }
         var content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml");
         content.Headers.Add("SOAPAction", $"\"urn:soa-ecommerce:v1:{GetServiceNamespace()}/I{GetServiceName()}Service/{operationName}\"");
 
@@ -68,6 +73,11 @@ public abstract class BaseSoapClient
         }
 
         var responseContent = await response.Content.ReadAsStringAsync();
+        try
+        {
+            _logger.LogInformation("SOAP IN  [{Service}.{Operation}]:\n{Body}", GetServiceName(), operationName, responseContent);
+        }
+        catch { /* logging best-effort */ }
         return ParseSoapResponse<T>(responseContent, operationName);
     }
 
@@ -116,7 +126,12 @@ public abstract class BaseSoapClient
         using var xmlWriter = XmlWriter.Create(stringWriter, settings);
 
         xmlWriter.WriteStartElement("request", serviceNamespace);
-        xmlWriter.WriteAttributeString("xmlns", "q1", null, dataContractNamespace);
+        // Para o serviço de composição (process), não usar namespace q1/datacontract
+        bool isProcessService = serviceNamespace.EndsWith(":process", StringComparison.OrdinalIgnoreCase);
+        if (!isProcessService)
+        {
+            xmlWriter.WriteAttributeString("xmlns", "q1", null, dataContractNamespace);
+        }
 
         // Serialização especializada para tipos conhecidos com coleções
         if (requestType.Name == "ReserveInventoryRequest")
@@ -182,6 +197,38 @@ public abstract class BaseSoapClient
                 }
             }
             xmlWriter.WriteEndElement(); // q1:Items
+        }
+        else if (requestType.Name == "PlaceOrderRequest")
+        {
+            // Para composição, emitir elementos no namespace do serviço (sem q1)
+            var email = requestType.GetProperty("CustomerEmail")?.GetValue(request)?.ToString();
+            if (!string.IsNullOrEmpty(email))
+            {
+                xmlWriter.WriteElementString("CustomerEmail", serviceNamespace, email);
+            }
+            var itemsProp = requestType.GetProperty("Items");
+            var items = itemsProp?.GetValue(request) as System.Collections.IEnumerable;
+            xmlWriter.WriteStartElement("Items", serviceNamespace);
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    var itemType = item!.GetType();
+                    xmlWriter.WriteStartElement("Item", serviceNamespace);
+                    var productId = itemType.GetProperty("ProductId")?.GetValue(item)?.ToString();
+                    var quantity = itemType.GetProperty("Quantity")?.GetValue(item)?.ToString();
+                    if (!string.IsNullOrEmpty(productId))
+                    {
+                        xmlWriter.WriteElementString("ProductId", serviceNamespace, productId);
+                    }
+                    if (!string.IsNullOrEmpty(quantity))
+                    {
+                        xmlWriter.WriteElementString("Quantity", serviceNamespace, quantity);
+                    }
+                    xmlWriter.WriteEndElement(); // Item
+                }
+            }
+            xmlWriter.WriteEndElement(); // Items
         }
         else
         {
@@ -332,7 +379,8 @@ public abstract class BaseSoapClient
 
                 // Items
                 var itemsProp = propOrder.PropertyType.GetProperty("Items");
-                var itemsNodeList = root.SelectNodes($".//*[local-name()='OrderItemDto']");
+                // Os itens no XML vêm como <Items><Item>...</Item></Items>
+                var itemsNodeList = root.SelectNodes($".//*[local-name()='Items']/*[local-name()='Item']");
                 if (itemsProp != null && itemsNodeList != null)
                 {
                     var list = (System.Collections.IList)itemsProp.GetValue(orderObj)!;
@@ -348,6 +396,25 @@ public abstract class BaseSoapClient
                 }
 
                 propOrder.SetValue(result, orderObj);
+            }
+        }
+
+        // ReserveInventoryResponse.PricedLines (quando existir)
+        var propPricedLines = type.GetProperty("PricedLines");
+        if (propPricedLines != null)
+        {
+            var linesNodes = root.SelectNodes($".//*[local-name()='PricedLines']/*[local-name()='PricedLine' or local-name()='Line']");
+            if (linesNodes != null)
+            {
+                var list = (System.Collections.IList)propPricedLines.GetValue(result)!;
+                foreach (XmlNode line in linesNodes)
+                {
+                    var lineObj = Activator.CreateInstance(propPricedLines.PropertyType.GenericTypeArguments[0]);
+                    lineObj!.GetType().GetProperty("ProductId")?.SetValue(lineObj, Guid.TryParse(line.SelectSingleNode($".//*[local-name()='ProductId']")?.InnerText, out var pg) ? pg : Guid.Empty);
+                    lineObj.GetType().GetProperty("Quantity")?.SetValue(lineObj, int.TryParse(line.SelectSingleNode($".//*[local-name()='Quantity']")?.InnerText, out var q) ? q : 0);
+                    lineObj.GetType().GetProperty("UnitPrice")?.SetValue(lineObj, decimal.TryParse(line.SelectSingleNode($".//*[local-name()='UnitPrice']")?.InnerText, out var up) ? up : 0m);
+                    list.Add(lineObj);
+                }
             }
         }
 

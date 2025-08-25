@@ -55,6 +55,7 @@ public class CompositionService : ICompositionService
             }
 
             // 2. Validar produtos e obter preços
+            _logger.LogInformation("PlaceOrder: itens recebidos no request = {Count}", request.Items?.Count ?? 0);
             var reserveRequest = new ReserveInventoryRequest
             {
                 Lines = request.Items.Select(item => new ReserveLine
@@ -63,6 +64,7 @@ public class CompositionService : ICompositionService
                     Quantity = item.Quantity
                 }).ToList()
             };
+            _logger.LogInformation("PlaceOrder: linhas para reserva = {Count}", reserveRequest.Lines.Count);
 
             var reserveResponse = _catalogClient.ReserveInventory(reserveRequest);
 
@@ -83,6 +85,7 @@ public class CompositionService : ICompositionService
                     UnitPrice = line.UnitPrice
                 }).ToList()
             };
+            _logger.LogInformation("PlaceOrder: itens para CreateOrder = {Count}", createOrderRequest.Items.Count);
 
             var createOrderResponse = _salesClient.CreateOrder(createOrderRequest);
 

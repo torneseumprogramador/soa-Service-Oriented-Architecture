@@ -24,6 +24,12 @@ public class SalesService : ISalesService
 
         try
         {
+            var itemsCount = request.Items?.Count ?? 0;
+            _logger.LogInformation("Itens recebidos no CreateOrder: {Count}", itemsCount);
+            if (itemsCount == 0)
+            {
+                _logger.LogWarning("Nenhum item recebido no CreateOrder para cliente: {CustomerId}", request.CustomerId);
+            }
             var order = new Order
             {
                 Id = Guid.NewGuid(),

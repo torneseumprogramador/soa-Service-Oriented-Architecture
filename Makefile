@@ -150,8 +150,17 @@ run-all: ## Executa todos os serviços localmente (em background)
 	$(MAKE) run-sales-bg &
 	$(MAKE) run-composition-bg &
 	@echo "$(GREEN)✅ Todos os serviços iniciados em background!$(NC)"
-	@echo "$(BLUE)⏳ Aguardando inicialização...$(NC)"
-	@sleep 5
+	@echo "$(BLUE)⏳ Aguardando serviços responderem (até 60s)...$(NC)"
+	@for i in $$(seq 1 30); do \
+		READY=1; \
+		curl -s http://localhost:7000/soap > /dev/null || READY=0; \
+		curl -s http://localhost:7001/soap > /dev/null || READY=0; \
+		curl -s http://localhost:7002/soap > /dev/null || READY=0; \
+		curl -s http://localhost:7003/soap > /dev/null || READY=0; \
+		if [ $$READY -eq 1 ]; then echo "$(GREEN)✅ Endpoints prontos$(NC)"; break; fi; \
+		sleep 2; \
+		if [ $$i -eq 30 ]; then echo "$(YELLOW)⚠️ Timeout de espera atingido; seguindo mesmo assim$(NC)"; fi; \
+	done
 	$(MAKE) status
 
 run-customer: ## Executa CustomerService (foreground)

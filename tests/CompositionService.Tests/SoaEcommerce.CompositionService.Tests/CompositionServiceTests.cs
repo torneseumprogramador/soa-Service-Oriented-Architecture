@@ -14,7 +14,7 @@ public class CompositionServiceTests
         // Arrange
         var request = new PlaceOrderRequest
         {
-            CustomerId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            CustomerEmail = "valid@example.com",
             Items = new List<PlaceOrderItem>
             {
                 new PlaceOrderItem
@@ -27,7 +27,7 @@ public class CompositionServiceTests
 
         // Act & Assert
         Assert.NotNull(request);
-        Assert.Equal(Guid.Parse("11111111-1111-1111-1111-111111111111"), request.CustomerId);
+        Assert.Equal("valid@example.com", request.CustomerEmail);
         Assert.Single(request.Items);
     }
 
@@ -37,7 +37,7 @@ public class CompositionServiceTests
         // Arrange
         var request = new PlaceOrderRequest
         {
-            CustomerId = Guid.NewGuid(), // Cliente inexistente
+            CustomerEmail = "invalid@example.com", // Cliente inexistente
             Items = new List<PlaceOrderItem>
             {
                 new PlaceOrderItem
@@ -50,7 +50,7 @@ public class CompositionServiceTests
 
         // Act & Assert
         Assert.NotNull(request);
-        Assert.NotEqual(Guid.Parse("11111111-1111-1111-1111-111111111111"), request.CustomerId);
+        Assert.NotEqual("valid@example.com", request.CustomerEmail);
     }
 
 }
