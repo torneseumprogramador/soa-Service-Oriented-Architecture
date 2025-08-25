@@ -20,14 +20,17 @@ public interface ICustomerService
     GetCustomerByEmailResponse GetCustomerByEmail(GetCustomerByEmailRequest request);
 }
 
-[XmlRoot("CreateCustomerRequest")]
+[XmlRoot("CreateCustomerRequest", Namespace = "urn:soa-ecommerce:v1:customers")]
+[DataContract(Namespace = "http://schemas.datacontract.org/2004/07/SoaEcommerce.Contracts")]
 public class CreateCustomerRequest
 {
-    [XmlElement("Name")]
-    public string Name { get; set; } = string.Empty;
-
     [XmlElement("Email")]
+    [DataMember(Order = 1)]
     public string Email { get; set; } = string.Empty;
+
+    [XmlElement("Name")]
+    [DataMember(Order = 2)]
+    public string Name { get; set; } = string.Empty;
 }
 
 [XmlRoot("CreateCustomerResponse", Namespace = "urn:soa-ecommerce:v1:customers")]
@@ -83,7 +86,7 @@ public class GetCustomerStatusResponse
     public bool Success { get; set; }
 }
 
-[XmlRoot("GetCustomerByEmailRequest")]
+[XmlRoot("GetCustomerByEmailRequest", Namespace = "urn:soa-ecommerce:v1:customers")]
 public class GetCustomerByEmailRequest
 {
     [XmlElement("Email")]

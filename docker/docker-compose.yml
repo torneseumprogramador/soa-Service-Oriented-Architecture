@@ -64,6 +64,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "8080:80"
+    volumes:
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
     depends_on:
       - pg-customers
       - pg-catalog

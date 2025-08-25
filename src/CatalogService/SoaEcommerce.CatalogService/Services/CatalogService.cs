@@ -24,6 +24,25 @@ public class CatalogService : ICatalogService
 
         try
         {
+            // Validações de entrada
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                _logger.LogWarning("Tentativa de criar produto com nome vazio");
+                throw Faults.InvalidRequest("Nome é obrigatório");
+            }
+
+            if (request.Price <= 0)
+            {
+                _logger.LogWarning("Tentativa de criar produto com preço inválido: {Price}", request.Price);
+                throw Faults.InvalidRequest("Preço deve ser maior que zero");
+            }
+
+            if (request.Stock < 0)
+            {
+                _logger.LogWarning("Tentativa de criar produto com estoque negativo: {Stock}", request.Stock);
+                throw Faults.InvalidRequest("Estoque não pode ser negativo");
+            }
+
             var product = new Product
             {
                 Id = Guid.NewGuid(),
